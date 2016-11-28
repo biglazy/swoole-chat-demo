@@ -12,13 +12,14 @@
             $controllerFile = './controllers/'.$controllerName.'Controller.php';
             $actionFullname = 'action'.ucfirst(strtolower($actionName));
             if(is_file($controllerFile)){
-                require_once $controllerFile;
+                include_once $controllerFile;
                 $controllerClass = $controllerName.'Controller';
                 $controller = new $controllerClass();
-            $controller->$actionFullname();
+                $controller->$actionFullname();
             }
         }
         $content = ob_get_clean();
         $response->end($content);
     });
+
     $http->start();

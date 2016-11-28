@@ -1,8 +1,8 @@
 <?php 
 
-include './libs/Controller.php';
+include './libs/HttpController.php';
 
-class indexController extends Controller{
+class indexController extends HttpController{
 
     public function actionIndex(){
         $this->show();
