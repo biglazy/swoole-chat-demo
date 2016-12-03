@@ -2,8 +2,8 @@
 <head>
     <meta http-equiv="content-type" content="txt/html; charset=utf-8" />
     <title>swoole-chat-demo</title>
-    <style>
-        #msg_box {width:620px;height:550px;padding:10px;border:2px solid grey;}
+<style>
+        #msg_box {width:620px;height:550px;padding:10px;border:2px solid grey;display:none;}
         #user_list {width:200px;height:100%;float:left;border:1px solid silver;}
         #user_list img {width:30px;height:30px;}
         #msg_list {width:400px;height:100%;margin-left:10px;float:left;border:1px solid silver;}
@@ -11,11 +11,18 @@
         #history_msg ul {padding:10px;margin:0;overflow-x:hidden;height:395px;}
         #history_msg ul li {border:1px solid grey;list-style:none;margin:5px;padding:5px;}
         #history_msg ul li img {width:30px;height:30px;}
-        #input_msg textarea{width:400px;height:100px;margin-top:33px;}
+        #input_msg textarea{width:400px;height:100px;margin-top:0;}
         ul li {list-style:none;}
         ul li a.cur {color:red;}
         .clear {clear:both;}
-    </style>
+        #show_name {height:33px;}
+        #show_name span{line-height:33px;}
+
+#login_box { border:1px solid silver; width:400px;padding:30px;display:none; }
+#user_name {width:200px;height:30px;}
+#user_img_preview {width:100px;height:100px;}
+#submit_form {width:120px;border-radius:8px;border:1px solid grey;height:30px;}
+</style>
 </head>
 <body>
     <h2>swoole-chat-demo</h2>
@@ -43,13 +50,37 @@
             <div id="history_msg">
                 <ul></ul>
             </div>
+            <div id="show_name">Your name: &lt; <span></span> &gt;</div>
             <div id="input_msg">
                 <textarea placehoder="这里输入聊天内容" disabled="true"></textarea>
             </div>
         </div>
         <div class="clear"></div>
     </div>
+
+    <div id="login_box">
+        <form id="login_form" >
+            <div style="margin:10px 0;"> 
+                <div style="float:left;width:80px;">用户名： </div>
+                <div style="float:left;"><input type="text" name="user_name" id="user_name" /></div>
+                <div style="clear:both;"></div>
+            </div>
+            <div style="margin:10px 0;"> 
+                <div style="float:left;width:80px;">头像： </div>
+                <div style="float:left;">
+                    <img src="" id="user_img_preview" />
+                    <input type="hidden" name="user_img" id="user_img" />
+                </div>
+                <div style="clear:both;"></div>
+            </div>
+            <div style="margin-left:80px;margin-top:20px;">
+                <input type="button" value="提交" id="submit_form" />
+            </div>
+        </form>
+    </div>
+
     <script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+    <script src="//cdn.bootcss.com/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
     <script>
         var cur_room_id = '';
         var ws = new WebSocket('ws://127.0.0.1:9502'); 
@@ -124,6 +155,14 @@
 
         // room_list 列表点击事件  
         $('#room_list ul').on('click','a.room',function(){
+            if($.cookie('chat_user') == null || $.cookie('chat_user') == ''){
+                $('#login_box').show();
+                return false;
+            }else{
+                $('#login_box').hide();
+            }
+
+            $('#msg_box').show();
             $('#input_msg textarea').attr('disabled',false);
             $('#user_list ul').empty();
             $('#room_list ul li a').removeClass('cur');
@@ -131,6 +170,16 @@
             cur_room_id = $(this).parents('li').attr('room_id');
             ws.send(JSON.stringify({route:'room_users',request:{room_id:cur_room_id}}));
             ws.send(JSON.stringify({route:'msg_list',request:{room_id:cur_room_id}}));
+        });
+
+        // 设置用户信息：
+        $('#submit_form').on('click',function(){
+            var user_name = $.trim($('#user_name').val());
+            if(user_name != ''){
+                $.cookie('chat_user',user_name,{expires:30});
+                $('#show_name span').text(user_name);
+                $('#login_box').hide();
+            }
         });
 
         // 消息输入框输入回车后
@@ -143,6 +192,11 @@
                 $(this).val('');
                 return false;
             }
+        });
+
+        $(function(){
+            var user_name = $.cookie('chat_user');
+            $('#show_name span').text(user_name);
         });
     </script>
 </body>
